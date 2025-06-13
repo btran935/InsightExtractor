@@ -1,12 +1,1 @@
 # created by virtualenv automatically
-*.pyc
-__pycache__/
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-ENV/
-*.db
-*.sqlite3
-*.log
