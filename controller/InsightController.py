@@ -9,7 +9,7 @@ def ingest_route():
     data = request.get_json() or {}
     feed_url = data.get('feed_url')
     if not feed_url:
-        return jsonify({"error": "Missing 'feed_url'"}), 400
+        return jsonify({"error": "Missing feed_url"}), 400
     try:
         ingest_feed_url(feed_url)
     except Exception as e:
@@ -24,7 +24,7 @@ def ingest_route():
 def list_themes():
     try:
         themes = get_all_themes()
-        if( themes.len() ) == 0:
+        if( len(themes) ) == 0:
             return jsonify({"error": "No themes found"}), 404
     except Exception as e:
         current_app.logger.error("Error retrieving themes ", exc_info=True)

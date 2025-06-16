@@ -104,7 +104,7 @@ def get_theme_by_id(theme_id: int):
             .order_by(Post.published_at)  # chronological order
         )
         posts = session.exec(statement).all()
-    return {
+    return [{
         "id": theme.id,
         "thesis_text": theme.thesis_text,
         "posts": [
@@ -117,4 +117,4 @@ def get_theme_by_id(theme_id: int):
             }
             for post in posts
         ],
-    }
+    }]
