@@ -8,7 +8,13 @@ from database import engine
 from sentence_transformers import SentenceTransformer
 from models.models import Theme, Post
 from datetime import datetime, timezone
+import logging
 
+logging.basicConfig(
+    level=logging.INFO,  # Change to DEBUG for more granular logs
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 model = SentenceTransformer("all-MiniLM-L6-v2")
 SIM_THRESHOLD = 0.8
 
@@ -25,6 +31,8 @@ def ingest_feed_url(feed_url: str)  :
     ## extract posts
     ## extract themes
     feed = feedparser.parse(feed_url)
+    logger.info(f"Starting feed ingestion for URL: {feed_url}")
+
     with Session(engine) as session:
         for entry in feed.entries:
             link = entry.get("link")
@@ -41,8 +49,10 @@ def ingest_feed_url(feed_url: str)  :
             for t in session.exec(select(Theme)).all():
                 existing_vec = json.loads(t.embedding or "[]")
                 similarity = cosine_similarity([embed_vec], [existing_vec])[0][0]
+                logger.debug(f"Comparing to theme ID {t.id} with similarity {similarity}")
                 if similarity >= SIM_THRESHOLD:
                     theme = t
+                    logger.info(f"Found existing theme ID {theme.id} with similarity {similarity}")
                     break
 
             ## if no matching theme found, write new theme to table
@@ -66,11 +76,15 @@ def ingest_feed_url(feed_url: str)  :
             )
             session.add(post)
             session.commit()
+            logger.info(f"Added new post ID {post.id} to theme ID {theme.id}")
+    logger.info(f"Completed ingestion for feed URL: {feed_url}")
+
 
 def get_all_themes() -> list[dict]:
     """
        list all themes with the count of posts supporting each
     """
+    logger.info("Fetching all themes with post counts.")
     with Session(engine) as session:
         statement = (
             select(
@@ -84,6 +98,7 @@ def get_all_themes() -> list[dict]:
         results = session.exec(statement).all()
 
         # Format results for JSON response
+    logger.info(f"Found {len(results)} themes.")
     return [
         {"id": theme_id, "thesis_text": thesis, "post_count": post_count}
         for theme_id, thesis, post_count in results
@@ -94,6 +109,7 @@ def get_theme_by_id(theme_id: int):
        Return the specified theme and its posts in chronological order.
        If the theme does not exist, return None.
     """
+    logger.info(f"Fetching theme with ID {theme_id}")
     with Session(engine) as session:
         theme = session.get(Theme, theme_id)
         if not theme:
@@ -104,6 +120,7 @@ def get_theme_by_id(theme_id: int):
             .order_by(Post.published_at)  # chronological order
         )
         posts = session.exec(statement).all()
+    logger.info(f"Found {len(posts)} posts for theme ID {theme.id}")
     return [{
         "id": theme.id,
         "thesis_text": theme.thesis_text,

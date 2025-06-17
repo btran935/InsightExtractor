@@ -1,0 +1,100 @@
+openapi: 3.0.0
+info:
+  title: Insight Extractor API
+  version: 1.0.0
+paths:
+  /ingest:
+    post:
+      summary: Ingest feed from a provided URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                feed_url:
+                  type: string
+                  example: "http://example.com/rss"
+      responses:
+        '200':
+          description: Successful ingestion
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Status:
+                    type: string
+                    example: "Success"
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Missing feed_url"
+
+  /themes:
+    get:
+      summary: Get all themes
+      responses:
+        '200':
+          description: List of themes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    thesis_text:
+                      type: string
+                    post_count:
+                      type: integer
+
+  /themes/{theme_id}:
+    get:
+      summary: Get a theme by ID with its posts
+      parameters:
+        - name: theme_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Theme details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    thesis_text:
+                      type: string
+                    posts:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          title:
+                            type: string
+                          url:
+                            type: string
+                          published_at:
+                            type: string
+                          thesis_text:
+                            type: string
+        '404':
+          description: Theme not found
