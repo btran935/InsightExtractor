@@ -1,5 +1,4 @@
 
-import requests
 import json
 import feedparser
 from sklearn.metrics.pairwise import cosine_similarity

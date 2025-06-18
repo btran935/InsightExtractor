@@ -1,0 +1,11 @@
+# docker-compose.yaml
+version: '3.8'
+
+services:
+  insight-extractor:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    command: python InsightExtractor.py
